@@ -1,21 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
+const API_URL = 'http://localhost:3000/users' // Địa chỉ Backend của bạn
+
 function App() {
-  // State lưu trữ danh sách người dùng
   const [users, setUsers] = useState([])
-  // State lưu trữ dữ liệu form đang nhập
   const [formData, setFormData] = useState({ name: '', email: '' })
-  // State kiểm tra xem đang ở chế độ thêm mới hay sửa
   const [editingId, setEditingId] = useState(null)
 
-  // Xử lý khi người dùng gõ vào input
+  // 1. READ: Lấy dữ liệu từ Backend khi load trang
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+    }
+  }
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // Xử lý Thêm (Create) hoặc Cập nhật (Update)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.name || !formData.email) {
       alert("Vui lòng nhập đầy đủ thông tin!")
@@ -23,33 +35,57 @@ function App() {
     }
 
     if (editingId) {
-      // Cập nhật người dùng hiện tại
-      setUsers(users.map(user =>
-        user.id === editingId ? { ...user, ...formData } : user
-      ))
-      setEditingId(null)
+      // 2. UPDATE: Gọi API Cập nhật (PUT)
+      try {
+        await fetch(`${API_URL}/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        fetchUsers(); // Gọi lại hàm fetchUsers để lấy danh sách mới nhất
+        setEditingId(null);
+      } catch (error) {
+        console.error("Lỗi khi cập nhật:", error);
+      }
     } else {
-      // Thêm người dùng mới với ID là timestamp
-      setUsers([...users, { id: Date.now(), ...formData }])
+      // 3. CREATE: Gọi API Thêm mới (POST)
+      try {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        fetchUsers();
+      } catch (error) {
+        console.error("Lỗi khi thêm mới:", error);
+      }
     }
+
     // Reset form
     setFormData({ name: '', email: '' })
   }
 
-  // Xử lý đưa dữ liệu lên form để Sửa
   const handleEdit = (user) => {
-    setFormData({ name: user.name, email: user.email })
+    // Đảm bảo không bị lỗi nếu backend trả về email undefined
+    setFormData({ name: user.name, email: user.email || '' })
     setEditingId(user.id)
   }
 
-  // Xử lý Xóa (Delete)
-  const handleDelete = (id) => {
-    setUsers(users.filter(user => user.id !== id))
+  const handleDelete = async (id) => {
+    // 4. DELETE: Gọi API Xóa
+    try {
+      await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE'
+      });
+      fetchUsers(); // Cập nhật lại danh sách sau khi xóa
+    } catch (error) {
+      console.error("Lỗi khi xóa:", error);
+    }
   }
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
-      <h2>Quản lý Người dùng</h2>
+      <h2>Quản lý Người dùng (Fullstack)</h2>
 
       {/* Form thêm/sửa người dùng */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
@@ -77,7 +113,7 @@ function App() {
         {users.map(user => (
           <li key={user.id} style={{ borderBottom: '1px solid #ccc', padding: '10px 0', display: 'flex', justifyContent: 'space-between' }}>
             <span>
-              <strong>{user.name}</strong> - {user.email}
+              <strong>{user.name}</strong> - {user.email || 'Chưa có email'}
             </span>
             <div>
               <button onClick={() => handleEdit(user)} style={{ marginRight: '5px', cursor: 'pointer' }}>Sửa</button>
