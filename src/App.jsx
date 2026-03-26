@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-const API_URL = '/users' // Địa chỉ Backend của bạn
+const API_URL = 'https://tech-sale-api.onrender.com/users' // Địa chỉ Backend của bạn
 
 function App() {
   const [users, setUsers] = useState([])
