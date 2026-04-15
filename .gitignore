@@ -10,6 +10,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+<<<<<<< frontend
+node_modules
+node_modules/
+.nuxt/
+*.local
+=======
 # Build outputs
 dist/
 build/
@@ -18,6 +24,7 @@ build/
 .env
 .env.local
 .env.*.local
+>>>>>>> main
 
 # Editor directories
 .vscode/
