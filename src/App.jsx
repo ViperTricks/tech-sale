@@ -1,4 +1,3 @@
-
 import { Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Swiper from "swiper";
@@ -73,7 +72,7 @@ function App() {
                   <Link className="nav-link me-4 active" to="/">Home</Link>
                 </li>
 
-                  
+
 
                 <li className="nav-item">
                   <Link className="nav-link me-4 text-primary fw-bold" to="/cart">Cart</Link>
