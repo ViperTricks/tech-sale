@@ -98,10 +98,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Products products={products} addToCart={addToCart} />} />
           <Route path="cart" element={<Cart />} />
-          {/* <Route
+          <Route
             path="/product/:id"
             element={<ProductDetail addToCart={addToCart} />}
-          /> */}
+          />
         </Routes>
       </main>
       {/* --- FOOTER --- */}
