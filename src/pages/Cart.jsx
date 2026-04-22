@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Thêm dòng này
 import API from '../api';
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // 2. Thêm dòng này để điều hướng
 
   const fetchCart = async () => {
     try {
@@ -21,6 +23,15 @@ export default function Cart() {
       setLoading(false);
     }
   };
+
+ const goToCheckout = () => {
+  if (cartItems.length === 0) {
+    alert("Giỏ hàng của bạn đang trống!");
+    return;
+  }
+  // Gửi kèm totalBill sang trang Checkout thông qua state
+  navigate('/checkout', { state: { totalAmount: totalBill } }); 
+};
 
   const handleUpdateQuantity = async (product_id, change) => {
     try {
@@ -44,9 +55,11 @@ export default function Cart() {
       console.error(error);
     }
   };
+
   const totalBill = Array.isArray(cartItems)
     ? cartItems.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0)
     : 0;
+
   useEffect(() => {
     fetchCart();
   }, []);
@@ -93,6 +106,13 @@ export default function Cart() {
           </table>
           <div className="text-end">
             <h4>Tổng cộng: {new Intl.NumberFormat('vi-VN').format(totalBill)}đ</h4>
+            <button
+              className="btn-checkout"
+              onClick={goToCheckout} // Bây giờ hàm này đã tồn tại
+              style={{ backgroundColor: '#28a745', color: 'white', padding: '10px 20px', border: 'none', cursor: 'pointer', borderRadius: '5px' }}
+            >
+              Thanh toán
+            </button>
           </div>
         </div>
       )}

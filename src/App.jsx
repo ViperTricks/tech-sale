@@ -1,4 +1,3 @@
-
 import { Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Swiper from "swiper";
@@ -6,6 +5,9 @@ import "swiper/css";
 import API from "./api";
 import Products from './pages/Products';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import PaymentSuccess from './pages/PaymentSuccess';
+
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -97,6 +99,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Products products={products} addToCart={addToCart} />} />
           <Route path="cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+
         </Routes>
       </main>
       {/* --- FOOTER --- */}
