@@ -1,6 +1,6 @@
 import Swiper from "swiper";
 import { useEffect } from "react";
-
+import { Link } from "react-router-dom";
 export default function Products({ products, addToCart }) {
   useEffect(() => {
     // Khởi tạo Swiper cho riêng trang Products
@@ -51,16 +51,51 @@ export default function Products({ products, addToCart }) {
             {products.map((p) => (
               <div className="col" key={p.product_id}>
                 <div className="product-card position-relative shadow-sm h-100 p-2">
-                  <div className="image-holder" style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    <img src={p.image_url || "images/product-item1.jpg"} alt={p.name} className="img-fluid" style={{ maxHeight: '100%', objectFit: 'contain' }} />
+
+                  {/* 🔥 CLICK ĐỂ XEM CHI TIẾT */}
+                  <Link
+                    to={`/product/${p.product_id}`}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    <div
+                      className="image-holder"
+                      style={{
+                        height: '220px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <img
+                        src={p.image_url || "images/product-item1.jpg"}
+                        alt={p.name}
+                        className="img-fluid"
+                        style={{ maxHeight: '100%', objectFit: 'contain' }}
+                      />
+                    </div>
+
+                    <div className="card-detail d-flex justify-content-between align-items-baseline pt-3">
+                      <h3 className="card-title text-uppercase fs-6">{p.name}</h3>
+                      <span className="text-primary fw-bold">
+                        {new Intl.NumberFormat('vi-VN').format(p.price)}đ
+                      </span>
+                    </div>
+                  </Link>
+
+                  {/* 🔥 NÚT ADD TO CART */}
+                  <div
+                    className="cart-concern position-absolute"
+                    style={{ top: '40%', left: '50%', transform: 'translateX(-50%)' }}
+                  >
+                    <button
+                      onClick={() => addToCart(p.product_id)}
+                      className="btn btn-medium btn-black text-uppercase"
+                    >
+                      Add to Cart
+                    </button>
                   </div>
-                  <div className="cart-concern position-absolute" style={{ top: '40%', left: '50%', transform: 'translateX(-50%)' }}>
-                    <button onClick={() => addToCart(p.product_id)} className="btn btn-medium btn-black text-uppercase">Add to Cart</button>
-                  </div>
-                  <div className="card-detail d-flex justify-content-between align-items-baseline pt-3">
-                    <h3 className="card-title text-uppercase fs-6">{p.name}</h3>
-                    <span className="text-primary fw-bold">{new Intl.NumberFormat('vi-VN').format(p.price)}đ</span>
-                  </div>
+
                 </div>
               </div>
             ))}

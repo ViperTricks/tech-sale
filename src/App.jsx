@@ -1,4 +1,3 @@
-
 import { Routes, Route, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
@@ -10,7 +9,9 @@ import API from "./api";
 import Products from './pages/Products';
 import Cart from './pages/Cart';
 import Profile from "./pages/Profile";
-
+import ProductDetail from './pages/ProductDetail';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -27,10 +28,25 @@ function App() {
   };
   const fetchCartCount = async () => {
     try {
-      const res = await fetch(`${API}/cart`);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch(`${API}/cart`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
       const data = await res.json();
+
+      if (!Array.isArray(data)) {
+        setCartCount(0);
+        return;
+      }
+
       const totalItems = data.reduce((sum, item) => sum + item.quantity, 0);
       setCartCount(totalItems);
+
     } catch (error) {
       console.error(error);
     }
@@ -38,13 +54,26 @@ function App() {
   // 2. Xử lý thêm vào giỏ hàng
   const addToCart = async (product_id) => {
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Vui lòng đăng nhập");
+        navigate("/login");
+        return;
+      }
+
       await fetch(`${API}/cart`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cart_id: 1, product_id, quantity: 1 }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ product_id, quantity: 1 }), // ❌ bỏ cart_id
       });
+
       alert("Thêm vào giỏ hàng thành công!");
-      fetchCartCount(); // Cập nhật lại con số trên Header ngay lập tức
+      fetchCartCount();
+
     } catch (error) {
       console.error(error);
     }
@@ -53,29 +82,48 @@ function App() {
   const navigate = useNavigate();
   const logout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
+    setCartCount(0); // 🔥 reset cart
     navigate("/");
   };
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser);
+
+      if (token) {
+        fetchCartCount();
+      }
     }
+
     fetchProducts();
 
-    // Khởi tạo slider Billboard ngay khi mount
-    new Swiper('.main-swiper', {
+    const swiper = new Swiper('.main-swiper', {
       loop: true,
       navigation: {
         nextEl: '.swiper-arrow-next',
         prevEl: '.swiper-arrow-prev',
       },
     });
+
+    return () => swiper.destroy(); // 🔥 tránh memory leak
   }, []);
+
+  fetchProducts();
+
 
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme="colored"
+      />
       {/* --- HEADER --- */}
       <header
         className="bg-light border-bottom position-fixed w-100"
@@ -88,6 +136,7 @@ function App() {
             MiniStore<span style={{ color: "#0d6efd" }}>.</span>
           </Link>
 
+
           {/* CENTER: MENU */}
           <div className="d-flex align-items-center gap-4">
             <Link className="nav-link" to="/">Home</Link>
@@ -99,24 +148,14 @@ function App() {
           {/* RIGHT: AUTH */}
           <div className="d-flex align-items-center gap-3">
             {user ? (
-
-              <button
-                onClick={logout}
-                style={{
-                  border: "none",
-                  background: "#ff4d4f",
-                  color: "#fff",
-                  padding: "6px 12px",
-                  borderRadius: "8px"
-                }}
-              >
-                Logout
-              </button>
+              <>
+                <Link to="/profile">Profile</Link>
+                <button onClick={logout}>Logout</button>
+              </>
             ) : (
               <>
-                <Link className="nav-link" to="/profile">Profile</Link>
-                <Link className="nav-link" to="/login">Đăng nhập</Link>
-                <Link className="nav-link " to="/register"> Đăng ký</Link>
+                <Link to="/login">Đăng nhập</Link>
+                <Link to="/register">Đăng ký</Link>
               </>
             )}
           </div>
@@ -128,10 +167,14 @@ function App() {
       <main style={{ paddingTop: '80px' }}> {/* Padding để không bị Header đè lên */}
         <Routes>
           <Route path="/" element={<Products products={products} addToCart={addToCart} />} />
-          <Route path="cart" element={<Cart />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/product/:id"
+            element={<ProductDetail addToCart={addToCart} />}
+          />
         </Routes>
       </main>
       {/* --- FOOTER --- */}
