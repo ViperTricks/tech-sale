@@ -93,7 +93,7 @@ function App() {
     localStorage.removeItem("token");
     setUser(null);
     setCartCount(0); // 🔥 reset cart
-    toast.info("Đăng xuất thành công");
+    toast.success("Đăng xuất thành công");
     navigate("/");
   };
 
