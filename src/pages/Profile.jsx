@@ -108,9 +108,6 @@ function Profile() {
         }}
       >
         <h3 className="text-center mb-4">👤 Thông tin cá nhân</h3>
-
-        <p><b>ID:</b> {user.id}</p>
-
         <p>
           <b>Tên:</b>{" "}
           {editing ? (
