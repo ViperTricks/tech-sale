@@ -5,20 +5,37 @@ import API from '../api';
 export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
   const navigate = useNavigate(); // 2. Thêm dòng này để điều hướng
+=======
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+
+    return {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    };
+  };
+>>>>>>> main
 
   const fetchCart = async () => {
     try {
-      const res = await fetch(`${API}/cart?t=${new Date().getTime()}`);
+      const res = await fetch(`${API}/cart`, {
+        headers: getAuthHeaders()
+      });
+
       const data = await res.json();
+
       if (data.error) {
         console.error("Backend Error:", data.error);
         setCartItems([]);
       } else {
         setCartItems(Array.isArray(data) ? data : []);
       }
+
       setLoading(false);
     } catch (error) {
+      console.error(error);
       setCartItems([]);
       setLoading(false);
     }
@@ -37,7 +54,7 @@ export default function Cart() {
     try {
       await fetch(`${API}/cart/update`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ product_id, change })
       });
       fetchCart();
@@ -61,6 +78,13 @@ export default function Cart() {
     : 0;
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Vui lòng đăng nhập");
+      return;
+    }
+
     fetchCart();
   }, []);
 
