@@ -13,11 +13,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "axios": "^1.15.0",
-=======
+    "axios": "^1.15.2",
     "bcrypt": "^6.0.0",
->>>>>>> main
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "react": "^19.2.0",

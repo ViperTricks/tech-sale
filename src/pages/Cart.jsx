@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // 1. Thêm dòng này
 import API from '../api';
+import { toast } from 'react-toastify'; // 2. Thêm dòng này
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
-<<<<<<< HEAD
-  const navigate = useNavigate(); // 2. Thêm dòng này để điều hướng
-=======
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
 
@@ -16,7 +14,6 @@ export default function Cart() {
       "Authorization": `Bearer ${token}`
     };
   };
->>>>>>> main
 
   const fetchCart = async () => {
     try {
@@ -41,14 +38,14 @@ export default function Cart() {
     }
   };
 
- const goToCheckout = () => {
-  if (cartItems.length === 0) {
-    alert("Giỏ hàng của bạn đang trống!");
-    return;
-  }
-  // Gửi kèm totalBill sang trang Checkout thông qua state
-  navigate('/checkout', { state: { totalAmount: totalBill } }); 
-};
+  const goToCheckout = () => {
+    if (cartItems.length === 0) {
+      toast.warn("Giỏ hàng của bạn đang trống!");
+      return;
+    }
+    // Gửi kèm totalBill sang trang Checkout thông qua state
+    navigate('/checkout', { state: { totalAmount: totalBill } });
+  };
 
   const handleUpdateQuantity = async (product_id, change) => {
     try {
@@ -66,7 +63,7 @@ export default function Cart() {
   const removeItem = async (cart_item_id) => {
     if (!window.confirm("Xóa sản phẩm này?")) return;
     try {
-      await fetch(`${API}/cart/${cart_item_id}`, { method: 'DELETE' });
+      await fetch(`${API}/cart/${cart_item_id}`, { method: 'DELETE', headers: getAuthHeaders() });
       fetchCart();
     } catch (error) {
       console.error(error);
@@ -81,7 +78,7 @@ export default function Cart() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("Vui lòng đăng nhập");
+      toast.warn("Vui lòng đăng nhập");
       return;
     }
 

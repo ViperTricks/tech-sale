@@ -13,11 +13,13 @@ import PaymentSuccess from './pages/PaymentSuccess';
 
 import Profile from "./pages/Profile";
 import ProductDetail from './pages/ProductDetail';
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
+  const [loadingCart, setLoadingCart] = useState(false);
+
   const [user, setUser] = useState(null);
   // 1. Lấy dữ liệu sản phẩm từ API
   const fetchProducts = async () => {
@@ -57,10 +59,11 @@ function App() {
   // 2. Xử lý thêm vào giỏ hàng
   const addToCart = async (product_id) => {
     try {
+      if (loadingCart) return;
       const token = localStorage.getItem("token");
 
       if (!token) {
-        alert("Vui lòng đăng nhập");
+        toast.warn("Vui lòng đăng nhập");
         navigate("/login");
         return;
       }
@@ -71,14 +74,16 @@ function App() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ product_id, quantity: 1 }), // ❌ bỏ cart_id
+        body: JSON.stringify({ product_id, quantity: 1 }),
       });
 
-      alert("Thêm vào giỏ hàng thành công!");
+      toast.success("Thêm vào giỏ hàng thành công!");
       fetchCartCount();
 
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoadingCart(false);
     }
   };
   // 3. Xử lý đăng xuất
@@ -116,9 +121,6 @@ function App() {
 
     return () => swiper.destroy(); // 🔥 tránh memory leak
   }, []);
-
-  fetchProducts();
-
 
   return (
     <>
