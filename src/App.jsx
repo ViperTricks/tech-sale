@@ -93,6 +93,7 @@ function App() {
     localStorage.removeItem("token");
     setUser(null);
     setCartCount(0); // 🔥 reset cart
+    toast.info("Đăng xuất thành công");
     navigate("/");
   };
 
@@ -180,6 +181,7 @@ function App() {
             path="/product/:id"
             element={<ProductDetail addToCart={addToCart} />}
           />
+          <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </main>
       {/* --- FOOTER --- */}

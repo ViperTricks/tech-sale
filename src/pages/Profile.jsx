@@ -8,7 +8,7 @@ function Profile() {
     const localUser = JSON.parse(localStorage.getItem("user"));
 
     if (localUser) {
-      fetch(`${API}/user/${localUser.id}`)
+      fetch(`${API}/auth/${localUser.id}`)
         .then(res => res.json())
         .then(data => setUser(data));
     }

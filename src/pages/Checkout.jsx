@@ -10,13 +10,23 @@ const Checkout = () => {
 
     const handlePayment = async (type) => {
         if (totalAmount <= 0 || !info.phone || !info.address) return alert("Vui lòng nhập đủ thông tin!");
-        
+
         setLoading(true);
         const endpoint = type === 'MOMO' ? '/orders/create-momo' : '/orders/create-vnpay';
-        
+
         try {
-            const res = await axios.post(`http://localhost:3000${endpoint}`, { amount: totalAmount });
-            
+            const token = localStorage.getItem("token");
+
+            const res = await axios.post(
+                `http://localhost:3000${endpoint}`,
+                { amount: totalAmount },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
             if (res.data && res.data.payUrl) {
                 localStorage.setItem('tempOrder', JSON.stringify({ ...info, method: type }));
                 window.location.href = res.data.payUrl;
@@ -35,13 +45,13 @@ const Checkout = () => {
             <div className="card p-4 shadow border-0">
                 <h3 className="text-center fw-bold mb-4">THANH TOÁN</h3>
                 <p className="text-center">Tổng: <b className="text-danger">{new Intl.NumberFormat('vi-VN').format(totalAmount)}đ</b></p>
-                <input className="form-control mb-2" placeholder="Số điện thoại" onChange={e => setInfo({...info, phone: e.target.value})} />
-                <textarea className="form-control mb-3" placeholder="Địa chỉ giao hàng" onChange={e => setInfo({...info, address: e.target.value})} />
-                
-                <button onClick={() => handlePayment('MOMO')} className="btn w-100 mb-2 text-white" style={{backgroundColor: '#A50064'}} disabled={loading}>
+                <input className="form-control mb-2" placeholder="Số điện thoại" onChange={e => setInfo({ ...info, phone: e.target.value })} />
+                <textarea className="form-control mb-3" placeholder="Địa chỉ giao hàng" onChange={e => setInfo({ ...info, address: e.target.value })} />
+
+                <button onClick={() => handlePayment('MOMO')} className="btn w-100 mb-2 text-white" style={{ backgroundColor: '#A50064' }} disabled={loading}>
                     Ví MoMo
                 </button>
-                <button onClick={() => handlePayment('VNPAY')} className="btn w-100 text-white" style={{backgroundColor: '#005baa'}} disabled={loading}>
+                <button onClick={() => handlePayment('VNPAY')} className="btn w-100 text-white" style={{ backgroundColor: '#005baa' }} disabled={loading}>
                     Thẻ ATM / VNPAY
                 </button>
             </div>

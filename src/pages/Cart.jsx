@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Thêm dòng này
+import { useNavigate } from 'react-router-dom';
 import API from '../api';
-import { toast } from 'react-toastify'; // 2. Thêm dòng này
+import { toast } from 'react-toastify';
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
-
+    if (!token) return {};
     return {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
@@ -45,18 +46,28 @@ export default function Cart() {
     }
     // Gửi kèm totalBill sang trang Checkout thông qua state
     navigate('/checkout', { state: { totalAmount: totalBill } });
+    localStorage.setItem("checkoutAmount", totalBill);
   };
 
+  const [updating, setUpdating] = useState(false);
+
   const handleUpdateQuantity = async (product_id, change) => {
+    if (updating) return;
+
     try {
+      setUpdating(true);
+
       await fetch(`${API}/cart/update`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ product_id, change })
       });
+
       fetchCart();
     } catch (error) {
       console.error(error);
+    } finally {
+      setUpdating(false);
     }
   };
 
