@@ -182,6 +182,7 @@ function App() {
             element={<ProductDetail addToCart={addToCart} />}
           />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
         </Routes>
       </main>
       {/* --- FOOTER --- */}
