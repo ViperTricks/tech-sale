@@ -194,7 +194,7 @@ export default function Products({ products, addToCart }) {
           ) : (
             <div className="text-center py-5">
               <div className="spinner-border text-primary mb-3" role="status"></div>
-              <p className="text-muted fw-bold">Đang tải danh sách công nghệ...</p>
+              <p className="text-muted fw-bold">Đang tải danh sách sản phẩm...</p>
             </div>
           )}
 

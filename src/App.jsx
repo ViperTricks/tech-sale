@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import Login from './pages/Login';
@@ -10,17 +10,34 @@ import Products from './pages/Products';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import PaymentSuccess from './pages/PaymentSuccess';
-
+import AdminLayout from './layouts/AdminLayout';
+import AdminProducts from './pages/admin/AdminProducts'
 import Profile from "./pages/Profile";
 import ProductDetail from './pages/ProductDetail';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AdminOrders from './pages/admin/AdminOrders';
+import AdminUsers from './pages/admin/AdminUsers';
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const [loadingCart, setLoadingCart] = useState(false);
 
   const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+
+  const fetchOrders = async () => {
+    const res = await fetch(`${API}/orders`);
+    const data = await res.json();
+    setOrders(data);
+  };
+
+  const fetchAllUsers = async () => {
+    const res = await fetch(`${API}/users`);
+    const data = await res.json();
+    setAllUsers(data);
+  };
   // 1. Lấy dữ liệu sản phẩm từ API
   const fetchProducts = async () => {
     try {
@@ -96,7 +113,7 @@ function App() {
     toast.success("Đăng xuất thành công");
     navigate("/");
   };
-
+  
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
@@ -122,7 +139,14 @@ function App() {
 
     return () => swiper.destroy(); // 🔥 tránh memory leak
   }, []);
-
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+  useEffect(() => {
+    if (isAdminPage) {
+      fetchOrders();
+      fetchAllUsers();
+    }
+  }, [isAdminPage]);
   return (
     <>
       <ToastContainer
@@ -131,44 +155,45 @@ function App() {
         theme="colored"
       />
       {/* --- HEADER --- */}
-      <header
-        className="bg-light border-bottom position-fixed w-100"
-        style={{ zIndex: 1000 }}
-      >
-        <div className="container d-flex align-items-center justify-content-between py-2">
+      {!isAdminPage && (
+        <header
+          className="bg-light border-bottom position-fixed w-100"
+          style={{ zIndex: 1000 }}
+        >
+          <div className="container d-flex align-items-center justify-content-between py-2">
 
-          {/* LEFT: LOGO */}
-          <Link className="navbar-brand fw-bold fs-4" to="/" style={{ color: "#333" }}>
-            MiniStore<span style={{ color: "#0d6efd" }}>.</span>
-          </Link>
-
-
-          {/* CENTER: MENU */}
-          <div className="d-flex align-items-center gap-4">
-            <Link className="nav-link" to="/">Home</Link>
-            <Link className="nav-link fw-semibold text-primary" to="/cart">
-              Cart
+            {/* LEFT: LOGO */}
+            <Link className="navbar-brand fw-bold fs-4" to="/" style={{ color: "#333" }}>
+              MiniStore<span style={{ color: "#0d6efd" }}>.</span>
             </Link>
+
+
+            {/* CENTER: MENU */}
+            <div className="d-flex align-items-center gap-4">
+              <Link className="nav-link" to="/">Home</Link>
+              <Link className="nav-link fw-semibold text-primary" to="/cart">
+                Cart
+              </Link>
+            </div>
+
+            {/* RIGHT: AUTH */}
+            <div className="d-flex align-items-center gap-3">
+              {user ? (
+                <>
+                  <Link to="/profile">Profile</Link>
+                  <button onClick={logout}>Logout</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login">Đăng nhập</Link>
+                  <Link to="/register">Đăng ký</Link>
+                </>
+              )}
+            </div>
+
           </div>
-
-          {/* RIGHT: AUTH */}
-          <div className="d-flex align-items-center gap-3">
-            {user ? (
-              <>
-                <Link to="/profile">Profile</Link>
-                <button onClick={logout}>Logout</button>
-              </>
-            ) : (
-              <>
-                <Link to="/login">Đăng nhập</Link>
-                <Link to="/register">Đăng ký</Link>
-              </>
-            )}
-          </div>
-
-        </div>
-      </header>
-
+        </header>
+      )}
 
       <main style={{ paddingTop: '80px' }}> {/* Padding để không bị Header đè lên */}
         <Routes>
@@ -183,30 +208,39 @@ function App() {
           />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<div className="text-center py-5"><h3>Chào mừng đến với trang quản trị tech-sale! 🚀</h3></div>} />
+            <Route path="products" element={<AdminProducts products={products} />} />
+            <Route path="orders" element={<AdminOrders orders={orders} />} />
+            <Route path="users" element={<AdminUsers users={allUsers} />} />
+          </Route>
         </Routes>
       </main>
       {/* --- FOOTER --- */}
-      <footer id="footer" className="overflow-hidden mt-5 pt-5 border-top">
-        <div className="container">
-          <div className="row d-flex flex-wrap justify-content-between">
-            <div className="col-lg-3 col-sm-6 pb-3">
-              <div className="footer-menu">
-                <img src="images/main-logo.png" alt="logo" className="pb-3" />
-                <p>Tech-Sale: Chuyên cung cấp giải pháp công nghệ hiện đại cho bạn.</p>
+      {!isAdminPage && (
+        <footer id="footer" className="overflow-hidden mt-5 pt-5 border-top">
+          <div className="container">
+            <div className="row d-flex flex-wrap justify-content-between">
+              <div className="col-lg-3 col-sm-6 pb-3">
+                <div className="footer-menu">
+                  <img src="images/main-logo.png" alt="logo" className="pb-3" />
+                  <p>Tech-Sale: Chuyên cung cấp giải pháp công nghệ hiện đại cho bạn.</p>
+                </div>
               </div>
-            </div>
-            <div className="col-lg-2 col-sm-6 pb-3">
-              <div className="footer-menu text-uppercase">
-                <h5 className="widget-title pb-2">Liên kết</h5>
-                <ul className="menu-list list-unstyled">
-                  <li className="menu-item pb-2"><a href="#">Trang chủ</a></li>
-                  <li className="menu-item pb-2"><a href="#">Cửa hàng</a></li>
-                </ul>
+              <div className="col-lg-2 col-sm-6 pb-3">
+                <div className="footer-menu text-uppercase">
+                  <h5 className="widget-title pb-2">Liên kết</h5>
+                  <ul className="menu-list list-unstyled">
+                    <li className="menu-item pb-2"><a href="#">Trang chủ</a></li>
+                    <li className="menu-item pb-2"><a href="#">Cửa hàng</a></li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </>
   );
 }
