@@ -1,80 +1,115 @@
 import { useState, useEffect } from "react";
 
-// Đổi tên từ 'admin' thành 'AdminProducts' cho chuẩn React
-export default function AdminProducts({ products }) {
-  
-  // Kiểm tra nếu products chưa có dữ liệu thì hiện loading hoặc thông báo
-  if (!products || products.length === 0) {
+export default function AdminProducts() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ======================
+  // GET PRODUCTS
+  // ======================
+  useEffect(() => {
+    fetch("http://localhost:3000/api/products")
+      .then(res => res.json())
+      .then(data => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  // ======================
+  // LOADING UI
+  // ======================
+  if (loading) {
     return (
       <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+        <div className="spinner-border text-primary"></div>
         <p className="mt-2 text-muted">Đang tải danh sách sản phẩm...</p>
       </div>
     );
   }
 
+  // ======================
+  // EMPTY STATE
+  // ======================
+  if (!products || products.length === 0) {
+    return <p className="text-center">Không có sản phẩm nào</p>;
+  }
+
   return (
     <div className="admin-product-list">
+
+      {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="m-0 fw-bold text-dark">Quản lý kho hàng</h4>
-        <button className="btn btn-primary rounded-pill shadow-sm">
-          <i className="bi bi-plus-lg me-1"></i> Thêm sản phẩm mới
+        <h4 className="m-0 fw-bold">Quản lý kho hàng</h4>
+
+        <button className="btn btn-primary rounded-pill">
+          + Thêm sản phẩm
         </button>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+      {/* TABLE */}
+      <div className="card shadow-sm border-0 rounded-4">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
+
             <thead className="table-light">
               <tr>
-                <th className="ps-4">ID</th>
-                <th>Hình ảnh</th>
-                <th>Tên sản phẩm</th>
-                <th>Giá bán</th>
-                <th>Trạng thái kho</th>
-                <th className="pe-4 text-center">Thao tác</th>
+                <th>ID</th>
+                <th>Ảnh</th>
+                <th>Tên</th>
+                <th>Giá</th>
+                <th>Kho</th>
+                <th className="text-center">Thao tác</th>
               </tr>
             </thead>
+
             <tbody>
               {products.map((p) => (
-                <tr key={p.product_id}>
-                  <td className="ps-4 text-muted">#{p.product_id}</td>
+                <tr key={p.product_id || p.id}>
+
+                  <td>#{p.product_id}</td>
+
                   <td>
-                    <img 
-                        src={p.image_url} 
-                        alt={p.name} 
-                        style={{ width: '45px', height: '45px', objectFit: 'contain' }} 
-                        className="rounded bg-white border p-1" 
+                    <img
+                      src={p.image_url}
+                      alt={p.name}
+                      style={{ width: 45, height: 45, objectFit: "contain" }}
                     />
                   </td>
-                  <td>
-                    <div className="fw-bold text-dark">{p.name}</div>
-                    <small className="text-muted">ID: {p.category_id}</small>
-                  </td>
+
+                  <td>{p.name}</td>
+
                   <td className="fw-bold text-primary">
-                    {new Intl.NumberFormat('vi-VN').format(p.price)}đ
+                    {Number(p.price).toLocaleString()}đ
                   </td>
+
                   <td>
-                    <span className={`badge rounded-pill ${p.stock < 5 ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'}`} style={{ padding: '8px 12px' }}>
-                      {p.stock < 5 ? `Sắp hết (${p.stock})` : `Sẵn hàng (${p.stock})`}
+                    <span className={p.stock < 5 ? "text-danger" : "text-success"}>
+                      {p.stock}
                     </span>
                   </td>
-                  <td className="pe-4 text-center">
-                    <button className="btn btn-sm btn-outline-secondary border-0 me-1" title="Sửa">
-                        <i className="bi bi-pencil-square"></i>
+
+                  <td className="text-center">
+                    <button className="btn btn-sm btn-outline-secondary me-1">
+                      ✏️
                     </button>
-                    <button className="btn btn-sm btn-outline-danger border-0" title="Xóa">
-                        <i className="bi bi-trash3"></i>
+                    <button className="btn btn-sm btn-outline-danger">
+                      🗑️
                     </button>
                   </td>
+
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       </div>
+
     </div>
   );
 }
