@@ -18,6 +18,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminDashboard from './pages/admin/AdminDashboard';
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -210,7 +211,7 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
 
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<div className="text-center py-5"><h3>Chào mừng đến với trang quản trị tech-sale! 🚀</h3></div>} />
+            <Route index element={<AdminDashboard />} />
             <Route path="products" element={<AdminProducts products={products} />} />
             <Route path="orders" element={<AdminOrders orders={orders} />} />
             <Route path="users" element={<AdminUsers users={allUsers} />} />
