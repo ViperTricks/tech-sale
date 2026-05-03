@@ -30,6 +30,7 @@ import Register from "./pages/Register";
 
 const API = typeof window !== "undefined" ? window.location.origin : "";
 
+import AdminDashboard from './pages/admin/AdminDashboard';
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -258,6 +259,9 @@ function App() {
           >
             <Route index element={<h3 className="text-center mt-5">Admin Dashboard</h3>} />
             <Route path="products" element={<AdminProducts />} />
+//           <Route path="/admin" element={<AdminLayout />}>
+//             <Route index element={<AdminDashboard />} />
+//             <Route path="products" element={<AdminProducts products={products} />} />
             <Route path="orders" element={<AdminOrders orders={orders} />} />
             <Route path="users" element={<AdminUsers users={allUsers} />} />
           </Route>
