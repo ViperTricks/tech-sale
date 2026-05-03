@@ -9,7 +9,7 @@ export default function AdminOrders() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch("http://localhost:3000/orders", {
+        const res = await fetch("/orders", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
