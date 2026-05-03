@@ -28,7 +28,7 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-const API = "http://localhost:3000";
+const API = typeof window !== "undefined" ? window.location.origin : "";
 
 function App() {
   const [products, setProducts] = useState([]);
