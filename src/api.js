@@ -1,3 +1,3 @@
-const API = "http://localhost:3000";
+const API = "https://tech-sale-be.onrender.com";
 
 export default API;
