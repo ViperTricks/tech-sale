@@ -45,7 +45,7 @@ function Login({ setUser }) {
         }
 
         try {
-            const res = await fetch(`${API}/auth/login`, {
+            const res = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -54,6 +54,7 @@ function Login({ setUser }) {
             });
 
             const data = await res.json();
+            console.log("LOGIN RESPONSE:", data);
 
             if (!res.ok) {
                 toast.error(data.message || "Đăng nhập thất bại");
