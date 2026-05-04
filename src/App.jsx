@@ -1,4 +1,4 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import Login from './pages/Login';
@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Swiper from "swiper";
 import "swiper/css";
 import API from "./api";
+
 import Products from './pages/Products';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -14,11 +15,14 @@ import AdminLayout from './layouts/AdminLayout';
 import AdminProducts from './pages/admin/AdminProducts'
 import Profile from "./pages/Profile";
 import ProductDetail from './pages/ProductDetail';
+
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import AdminOrders from './pages/admin/AdminOrders';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminDashboard from './pages/admin/AdminDashboard';
+
 function App() {
   const [products, setProducts] = useState([]);
   const [cartCount, setCartCount] = useState(0);
@@ -28,56 +32,59 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
 
-  const fetchOrders = async () => {
-    const res = await fetch(`${API}/orders`);
-    const data = await res.json();
-    setOrders(data);
-  };
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const fetchAllUsers = async () => {
-    const res = await fetch(`${API}/users`);
-    const data = await res.json();
-    setAllUsers(data);
-  };
-  // 1. Lấy dữ liệu sản phẩm từ API
+  const isAdminPage = location.pathname.includes("/admin");
+  const isAdmin = user?.role === "admin";
+
+  // ================= FETCH =================
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${API}/products`);
       const data = await res.json();
       setProducts(data);
-    } catch (error) {
-      console.error("Lỗi fetch data:", error);
+    } catch (err) {
+      console.error(err);
     }
   };
+
   const fetchCartCount = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
       const res = await fetch(`${API}/cart`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const data = await res.json();
+      if (!Array.isArray(data)) return;
 
-      if (!Array.isArray(data)) {
-        setCartCount(0);
-        return;
-      }
-
-      const totalItems = data.reduce((sum, item) => sum + item.quantity, 0);
-      setCartCount(totalItems);
-
-    } catch (error) {
-      console.error(error);
+      const total = data.reduce((s, i) => s + i.quantity, 0);
+      setCartCount(total);
+    } catch (err) {
+      console.error(err);
     }
   };
-  // 2. Xử lý thêm vào giỏ hàng
+
+  const fetchOrders = async () => {
+    const res = await fetch(`${API}/orders`);
+    const data = await res.json();
+    setOrders(data);
+  };
+
+  const fetchUsers = async () => {
+    const res = await fetch(`${API}/users`);
+    const data = await res.json();
+    setAllUsers(data);
+  };
+
+  // ================= ADD TO CART =================
   const addToCart = async (product_id) => {
     try {
       if (loadingCart) return;
+
       const token = localStorage.getItem("token");
 
       if (!token) {
@@ -90,95 +97,95 @@ function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ product_id, quantity: 1 }),
       });
 
-      toast.success("Thêm vào giỏ hàng thành công!");
+      toast.success("Thêm vào giỏ hàng!");
       fetchCartCount();
 
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingCart(false);
+    } catch (err) {
+      console.error(err);
     }
   };
-  // 3. Xử lý đăng xuất
-  const navigate = useNavigate();
+
+  // ================= LOGOUT =================
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
-    setCartCount(0); // 🔥 reset cart
+    setCartCount(0);
     toast.success("Đăng xuất thành công");
     navigate("/");
   };
 
+  // ================= INIT =================
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     const token = localStorage.getItem("token");
 
     if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
-
-      if (token) {
-        fetchCartCount();
-      }
+      setUser(JSON.parse(savedUser));
+      if (token) fetchCartCount();
     }
 
     fetchProducts();
 
-    const swiper = new Swiper('.main-swiper', {
+    const swiper = new Swiper(".main-swiper", {
       loop: true,
       navigation: {
-        nextEl: '.swiper-arrow-next',
-        prevEl: '.swiper-arrow-prev',
+        nextEl: ".swiper-arrow-next",
+        prevEl: ".swiper-arrow-prev",
       },
     });
 
-    return () => swiper.destroy(); // 🔥 tránh memory leak
+    return () => swiper.destroy();
   }, []);
-  const location = useLocation();
-  const isAdminPage = location.pathname.startsWith('/admin');
+
+  // ================= ADMIN DATA =================
   useEffect(() => {
-    if (isAdminPage) {
+    if (isAdminPage && isAdmin) {
       fetchOrders();
-      fetchAllUsers();
+      fetchUsers();
     }
-  }, [isAdminPage]);
+  }, [isAdminPage, isAdmin]);
+
   return (
     <>
-      <ToastContainer
-        position="top-right"
-        autoClose={1000}
-        theme="colored"
-      />
-      {/* --- HEADER --- */}
-      {!isAdminPage && (
-        <header
-          className="bg-light border-bottom position-fixed w-100"
-          style={{ zIndex: 1000 }}
-        >
-          <div className="container d-flex align-items-center justify-content-between py-2">
+      <ToastContainer position="top-right" autoClose={1000} />
 
-            {/* LEFT: LOGO */}
-            <Link className="navbar-brand fw-bold fs-4" to="/" style={{ color: "#333" }}>
-              MiniStore<span style={{ color: "#0d6efd" }}>.</span>
+      {/* HEADER */}
+      {!isAdminPage && (
+        <header className="bg-light border-bottom position-fixed w-100">
+          <div className="container d-flex justify-content-between align-items-center py-2">
+
+            <Link to="/" className="fw-bold fs-4 text-decoration-none">
+              MiniStore<span className="text-primary">.</span>
             </Link>
 
+            <div className="d-flex gap-3 align-items-center">
+              <Link to="/">Home</Link>
+              <Link to="/cart">Cart ({cartCount})</Link>
 
-            {/* CENTER: MENU */}
-            <div className="d-flex align-items-center gap-4">
-              <Link className="nav-link" to="/">Home</Link>
-              <Link className="nav-link fw-semibold text-primary" to="/cart">
-                Cart
-              </Link>
+              {/* 🔥 ADMIN BUTTON */}
+              {isAdmin && (
+                <Link
+                  to="/admin/products"
+                  style={{
+                    background: "linear-gradient(135deg,#ff4d4d,#ff9900)",
+                    color: "#fff",
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    fontWeight: "600",
+                  }}
+                >
+                  ⚙ Admin
+                </Link>
+              )}
             </div>
 
-            {/* RIGHT: AUTH */}
-            <div className="d-flex align-items-center gap-3">
+            <div className="d-flex gap-2 align-items-center">
               {user ? (
                 <>
                   <Link to="/profile">Profile</Link>
@@ -186,8 +193,8 @@ function App() {
                 </>
               ) : (
                 <>
-                  <Link to="/login">Đăng nhập</Link>
-                  <Link to="/register">Đăng ký</Link>
+                  <Link to="/login">Login</Link>
+                  <Link to="/register">Register</Link>
                 </>
               )}
             </div>
@@ -196,52 +203,32 @@ function App() {
         </header>
       )}
 
-      <main style={{ paddingTop: '80px' }}> {/* Padding để không bị Header đè lên */}
+      {/* MAIN */}
+      <main style={{ paddingTop: "80px" }}>
         <Routes>
           <Route path="/" element={<Products products={products} addToCart={addToCart} />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
-          <Route
-            path="/product/:id"
-            element={<ProductDetail addToCart={addToCart} />}
-          />
+          <Route path="/product/:id" element={<ProductDetail addToCart={addToCart} />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
 
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* 🔥 ADMIN PROTECTED */}
+          <Route
+            path="/admin/*"
+            element={isAdmin ? <AdminLayout /> : <Navigate to="/" />}
+          >
             <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts products={products} />} />
+            <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders orders={orders} />} />
             <Route path="users" element={<AdminUsers users={allUsers} />} />
           </Route>
+
+          <Route path="*" element={<Products products={products} addToCart={addToCart} />} />
         </Routes>
       </main>
-      {/* --- FOOTER --- */}
-      {!isAdminPage && (
-        <footer id="footer" className="overflow-hidden mt-5 pt-5 border-top">
-          <div className="container">
-            <div className="row d-flex flex-wrap justify-content-between">
-              <div className="col-lg-3 col-sm-6 pb-3">
-                <div className="footer-menu">
-                  <img src="images/main-logo.png" alt="logo" className="pb-3" />
-                  <p>Tech-Sale: Chuyên cung cấp giải pháp công nghệ hiện đại cho bạn.</p>
-                </div>
-              </div>
-              <div className="col-lg-2 col-sm-6 pb-3">
-                <div className="footer-menu text-uppercase">
-                  <h5 className="widget-title pb-2">Liên kết</h5>
-                  <ul className="menu-list list-unstyled">
-                    <li className="menu-item pb-2"><a href="#">Trang chủ</a></li>
-                    <li className="menu-item pb-2"><a href="#">Cửa hàng</a></li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
-      )}
     </>
   );
 }
